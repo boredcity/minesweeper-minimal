@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>@minesweeper###</title>
+    </head>
+    <body>
+        <pre>
+/*
+
+@minesweeper###
+
+the field is a square with a side of <span contenteditable="true" id="side"></span> (changeable)
+"*"s are mines; there are <span contenteditable="true" id="mines"></span> (changeable) of them on the field
+use left click to reveal hidden cell
+numbers in revealed cells show mines count in 8 surrounding cells
+use right click to mark cell as a mine or auto-reveal surrounding tiles
+
+revealed <span id="revealed">0</span> of <span id="total">90</span>
+*/
+        </pre>
+        <pre id="field"></pre>
+        <style>
+            body { text-align: center; }
+            #field {
+                border: 1px solid black;
+                display: inline-block;
+            }
+            .row {
+                display: flex;
+            }
+            .cell {
+                user-select: none;
+                width: 20px;
+                height: 20px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid black;
+                background-color: gray;
+            }
+            .cell.mine:not(.revealed) {
+                background-color: darkgrey;
+            }
+            .cell.mine:not(.revealed):after {
+                content: '*';
+                color: white;
+            }
+            .cell.revealed {
+                background-color: transparent;
+            }
+        </style>
+        <script src="./index.js"></script>
+    </body>
+</html>
