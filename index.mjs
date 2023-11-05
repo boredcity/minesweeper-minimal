@@ -245,7 +245,8 @@ const main = () => {
 
         // update neighbours info
         for (const [rowAdj, cellAdj] of NEIGHBOR_ADJUSTMENTS) {
-            if (field[rowI + rowAdj]?.[cellI + cellAdj] !== undefined) {
+            if (typeof field[rowI + rowAdj]?.[cellI + cellAdj] === 'number') {
+                // not a mine or outside field
                 field[rowI + rowAdj][cellI + cellAdj]++;
             }
         }
