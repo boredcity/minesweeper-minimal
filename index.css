@@ -1,0 +1,28 @@
+body { text-align: center; }
+#field {
+    border: 1px solid black;
+    display: inline-block;
+}
+.row {
+    display: flex;
+}
+.cell {
+    user-select: none;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid black;
+    background-color: gray;
+}
+.cell.mine:not(.revealed) {
+    background-color: darkgrey;
+}
+.cell.mine:not(.revealed):after {
+    content: '*';
+    color: white;
+}
+.cell.revealed {
+    background-color: transparent;
+}
