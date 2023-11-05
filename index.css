@@ -1,4 +1,8 @@
 body { text-align: center; }
+[contenteditable] {
+    font-weight: bold;
+    font-style: italic;
+}
 #field {
     border: 1px solid black;
     display: inline-block;
