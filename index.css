@@ -1,32 +1,78 @@
-body { text-align: center; }
-[contenteditable] {
-    font-weight: bold;
-    font-style: italic;
+:root {
+    --revealedBGColor: hsla(0, 0%, 0%, 0.64);
+    --textColor: hsla(0, 0%, 100%, 1);
+    --defaultBGColor: hsla(0, 0%, 50%, 0.7);
 }
+
+html,
+body {
+    height: 100vh; /* fallback for Firefox */
+    height: 100dvh;
+    overflow: hidden;
+}
+
+html {
+    background: radial-gradient(
+        circle at 50% 50%,
+        hsla(0, 0%, 100%, 0.87) 0%,
+        hsla(0, 0%, 100%, 0.87) 60%,
+        hsla(0, 0%, 0%, 0.87) 60%,
+        hsla(0, 0%, 0%, 0.87) 75%,
+        hsla(0, 0%, 100%, 0.87) 75%
+    );
+}
+
+body {
+    margin: 0;
+    display: grid;
+    place-items: center;
+    backdrop-filter: blur(3px) sepia(90%);
+}
+
 #field {
-    border: 1px solid black;
-    display: inline-block;
-}
-.row {
     display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
+
+.word {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.map {
+    display: grid;
+    gap: 1px;
+}
+
+.map.solved .cell {
+    background-color: var(--revealedBGColor);
+    color: transparent;
+}
+
 .cell {
+    transition: background-color .2s ease, color .2s ease;
     user-select: none;
-    width: 20px;
-    height: 20px;
+    width: 12px;
+    height: 12px;
+    font-size: 10px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid black;
-    background-color: gray;
+    background-position: 1px -1px;
+    background-color: var(--defaultBGColor);
+    color: var(--textColor);
 }
-.cell.mine:not(.revealed) {
-    background-color: darkgrey;
-}
+
 .cell.mine:not(.revealed):after {
     content: '*';
-    color: white;
 }
+
 .cell.revealed {
-    background-color: transparent;
+    background-color: var(--revealedBGColor);
+}
+
+.cell.hidden {
+    visibility: hidden;
 }

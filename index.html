@@ -4,25 +4,18 @@
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>@minesweeper###</title>
-        <link rel="stylesheet" href="./index.css">
+        
+        <link rel="icon" href="/icons/favicon.ico" sizes="32x32">
+        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><!-- 180×180 -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <title>@boredcity###</title>
+        <link rel="stylesheet" href="./index.css" />
     </head>
     <body>
-        <pre>
-/*
-
-@minesweeper###
-
-the field is a square with a side of <span contenteditable="true" id="side"></span> (changeable)
-"*"s are mines; there are <span contenteditable="true" id="mines"></span> (changeable) of them on the field
-use left click to reveal hidden cell
-numbers in revealed cells show mines count in 8 surrounding cells
-use right click to mark cell as a mine or auto-reveal surrounding tiles
-
-revealed <span id="revealed-count">0</span> of <span id="total">90</span>
-*/
-        </pre>
         <pre id="field"></pre>
-        <script type="module" src="./index.mjs"></script>
+        <script type="module" src="./title-animation.mjs"></script>
+        <script type="module" src="./minesweeper.mjs"></script>
     </body>
 </html>
