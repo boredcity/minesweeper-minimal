@@ -23,7 +23,7 @@ body {
     display: grid;
     place-items: center;
     min-width: fit-content;
-    min-height: 100vh; /* fallback for Firefox */
+    min-height: 100vh;
     min-height: 100dvh;
     backdrop-filter: blur(3px) sepia(90%);
     margin: 0;
@@ -87,18 +87,25 @@ body {
 
 @media only screen and (max-width: 1550px) {
     h1 {
+        margin: 0;
         text-align: center;
-        padding: 100px 0;
+        padding: 11vw 0;
+        padding: 11dvw 0;
+        font-size: 10vw;
         font-size: 10dvw;
+        text-shadow: 6vw 10vw 2vw hsla(0, 0%, 0%, 0.7);
         text-shadow: 6dvw 10dvw 2dvw hsla(0, 0%, 0%, 0.7);
     }
 
     body {
+        max-height: 100vh;
         max-height: 100dvh;
+        --cellSize: 20px;
     }
 
     #root {
         scroll-snap-type: y mandatory;
+        max-height: 100vh;
         max-height: 100dvh;
         overflow-y: auto;
         width: 100%;
@@ -110,12 +117,9 @@ body {
 
     .letter-map {
         place-content: center;
+        height: 100vh;
         height: 100dvh;
+        min-height: 684px; /* remove constant */
         scroll-snap-align: start;
-    }
-
-    .cell {
-        width: 20px;
-        height: 20px;
     }
 }

@@ -28,5 +28,6 @@ const loadContent = async () => {
 };
 
 window.onresize = loadContent;
+screen.orientation.addEventListener('change', loadContent);
 
 loadContent();
