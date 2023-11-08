@@ -5,7 +5,7 @@ const root = document.getElementById('root');
 let wasWideScreen = null;
 
 const loadContent = async () => {
-    const isWideScreen = window.innerWidth >= 500;
+    const isWideScreen = window.innerWidth >= 600;
 
     if (wasWideScreen === isWideScreen) return;
     wasWideScreen = isWideScreen;
