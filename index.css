@@ -2,13 +2,8 @@
     --revealedBGColor: hsla(0, 0%, 0%, 0.64);
     --textColor: hsla(0, 0%, 100%, 1);
     --defaultBGColor: hsla(0, 0%, 50%, 0.7);
-}
-
-html,
-body {
-    height: 100vh; /* fallback for Firefox */
-    height: 100dvh;
-    overflow: hidden;
+    --cellSize: 12px;
+    --gapBetweenCells: 1px;
 }
 
 html {
@@ -20,47 +15,54 @@ html {
         hsla(0, 0%, 0%, 0.87) 75%,
         hsla(0, 0%, 100%, 0.87) 75%
     );
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 body {
-    margin: 0;
     display: grid;
     place-items: center;
+    min-width: fit-content;
+    min-height: 100vh; /* fallback for Firefox */
+    min-height: 100dvh;
     backdrop-filter: blur(3px) sepia(90%);
+    margin: 0;
 }
 
-#field {
+#root {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    margin: 0;
+    gap: calc(var(--gapBetweenCells) + var(--cellSize));
 }
 
 .word {
     display: flex;
-    gap: 8px;
+    gap: calc(var(--gapBetweenCells) + var(--cellSize));
     justify-content: center;
+    align-items: center;
 }
 
-.map {
+.letter-map {
     display: grid;
-    gap: 1px;
+    gap: var(--gapBetweenCells);
 }
 
-.map.solved .cell {
+.letter-map.solved .cell {
     background-color: var(--revealedBGColor);
     color: transparent;
 }
 
 .cell {
-    transition: background-color .2s ease, color .2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     user-select: none;
-    width: 12px;
-    height: 12px;
+    width: var(--cellSize);
+    height: var(--cellSize);
     font-size: 10px;
     display: inline-flex;
+    position: relative;
     align-items: center;
     justify-content: center;
-    background-position: 1px -1px;
     background-color: var(--defaultBGColor);
     color: var(--textColor);
 }
@@ -69,10 +71,51 @@ body {
     content: '*';
 }
 
+.cell::before {
+    content: '';
+    position: absolute;
+    inset: -calc(var(--gapBetweenCells) / 2);
+}
+
 .cell.revealed {
     background-color: var(--revealedBGColor);
 }
 
 .cell.hidden {
     visibility: hidden;
+}
+
+@media only screen and (max-width: 1550px) {
+    h1 {
+        text-align: center;
+        padding: 100px 0;
+        font-size: 10dvw;
+        text-shadow: 6dvw 10dvw 2dvw hsla(0, 0%, 0%, 0.7);
+    }
+
+    body {
+        max-height: 100dvh;
+    }
+
+    #root {
+        scroll-snap-type: y mandatory;
+        max-height: 100dvh;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    .word {
+        flex-direction: column;
+    }
+
+    .letter-map {
+        place-content: center;
+        height: 100dvh;
+        scroll-snap-align: start;
+    }
+
+    .cell {
+        width: 20px;
+        height: 20px;
+    }
 }

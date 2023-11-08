@@ -1,6 +1,6 @@
 // not minimized on purpose
 
-import { maps } from './maps.mjs';
+import { letterMaps } from './maps.mjs';
 
 const ADJUSTMENTS = [-1, 0, 1];
 const NEIGHBOR_ADJUSTMENTS = ADJUSTMENTS.flatMap(x =>
@@ -10,41 +10,62 @@ const MARKED_AS_MINE_CLS = 'mine';
 const CELL_CLS = 'cell';
 const REVEALED_CLS = 'revealed';
 
-const fieldParentEl = document.getElementById('field');
+export const startGames = rootElement =>
+    letterMaps
+        .flatMap(word => {
+            const sectionEl = document.createElement('section');
+            sectionEl.className = 'word';
+            const mapInfo = word.map(letter => {
+                const fieldEl = document.createElement('div');
+                fieldEl.className = 'letter-map';
+                sectionEl.append(fieldEl);
+                return { fieldShape: letter, fieldEl };
+            });
+            rootElement.append(sectionEl);
+            return mapInfo;
+        })
+        .map(runGame);
 
 const getCellPositionData = cell => {
     const { rowI, cellI } = cell.dataset;
     return { rowI: +rowI, cellI: +cellI };
 };
 
-const runGame = ({ field: cleanField, fieldEl }) => {
-    const field = cleanField.map(row => row.slice());
+const getCell = (fieldEl, rowI, cellI) =>
+    fieldEl.querySelector(
+        `.cell[data-row-i="${rowI}"][data-cell-i="${cellI}"]`
+    ) ?? undefined;
+
+function runGame({ fieldShape, fieldEl }, gameIndex) {
+    const field = fieldShape.map(row => row.slice());
     let gameStarted = false;
 
-    fieldEl.innerHTML = '';
-    fieldEl.style.gridTemplateColumns = `repeat(${field[0].length}, 1fr)`;
-    const cellEls = field.flatMap((cells, rowI) => {
-        return cells.map((val, cellI) => {
-            const cell = document.createElement('span');
-            if (val === null) return undefined;
-            cell.className = CELL_CLS;
-            cell.dataset.rowI = rowI;
-            cell.dataset.cellI = cellI;
-            cell.style.gridArea = `${rowI + 1} / ${cellI + 1}`;
-            return cell;
+    if (fieldEl.innerHTML === '') {
+        fieldEl.style.gridTemplateColumns = `repeat(${field[0].length}, 1fr)`;
+        const cellEls = field.flatMap((cells, rowI) => {
+            return cells.map((val, cellI) => {
+                const cell = document.createElement('span');
+                if (val === null) return undefined;
+                cell.className = CELL_CLS;
+                cell.dataset.rowI = rowI;
+                cell.dataset.cellI = cellI;
+                cell.style.gridArea = `${rowI + 1} / ${cellI + 1}`;
+                return cell;
+            });
         });
-    });
-    fieldEl.append(...cellEls.filter(Boolean));
-
-    const visibility = field.map(row => row.map(() => false));
+        fieldEl.append(...cellEls.filter(Boolean));
+    } else {
+        fieldEl.getElementsByClassName(CELL_CLS).forEach(c => {
+            c.className = 'cell';
+            c.innerHTML = '';
+        });
+    }
     const cellsArr = Array.from(fieldEl.getElementsByClassName(CELL_CLS));
 
-    const minesCount = Math.floor(cellsArr.length / 8); // challenging enough :)
+    const visibility = field.map(row => row.map(() => false));
 
-    const getCellAt = (rowI, cellI) =>
-        fieldEl.querySelector(
-            `.cell[data-row-i="${rowI}"][data-cell-i="${cellI}"]`
-        ) ?? undefined;
+    // each next letter is a bit more challenging
+    const minesCount = Math.floor(cellsArr.length / (16 - gameIndex));
 
     const updateVisibleCount = () => {
         let visibleCount = 0;
@@ -78,18 +99,9 @@ const runGame = ({ field: cleanField, fieldEl }) => {
         fieldEl.oncontextmenu = e => e.preventDefault();
         if (hasWon) {
             fieldEl.classList.add('solved');
-            if (
-                Array.from(fieldParentEl.children).every(word =>
-                    Array.from(word.children).every(el =>
-                        el.classList.contains('solved')
-                    )
-                )
-            ) {
-                console.log('All solved');
-            }
         } else {
             setTimeout(() => {
-                runGame({ field: cleanField, fieldEl });
+                runGame({ field: fieldShape, fieldEl }, gameIndex);
             }, 1000);
         }
     };
@@ -126,7 +138,7 @@ const runGame = ({ field: cleanField, fieldEl }) => {
             let value = field[rowI][cellI];
             if (value === 0) return; // adjacents already should be revealed
             for (const [rowAdj, cellAdj] of NEIGHBOR_ADJUSTMENTS) {
-                const cell = getCellAt(rowI + rowAdj, cellI + cellAdj);
+                const cell = getCell(fieldEl, rowI + rowAdj, cellI + cellAdj);
                 if (cell?.classList.contains(MARKED_AS_MINE_CLS)) value--;
             }
             if (value > 0) return; // not enough cells marked as mines to reveal
@@ -145,7 +157,7 @@ const runGame = ({ field: cleanField, fieldEl }) => {
             if (isVisible) continue; // no need to reveal
 
             const value = field[rI]?.[cI];
-            const cell = getCellAt(rI, cI);
+            const cell = getCell(fieldEl, rI, cI);
             if (cell === undefined || value === undefined) continue; // skip out of bounds
 
             if (cell.classList.contains(MARKED_AS_MINE_CLS)) continue; // skip cells marked by player as mines
@@ -190,17 +202,4 @@ const runGame = ({ field: cleanField, fieldEl }) => {
             }
         }
     };
-};
-
-maps.flatMap(word => {
-    const wordEl = document.createElement('div');
-    wordEl.className = 'word';
-    const maps = word.map(letter => {
-        const fieldEl = document.createElement('div');
-        fieldEl.className = 'map';
-        wordEl.append(fieldEl);
-        return { field: letter, fieldEl };
-    });
-    fieldParentEl.append(wordEl);
-    return maps;
-}).map(runGame);
+}

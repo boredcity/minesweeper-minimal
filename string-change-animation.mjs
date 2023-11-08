@@ -1,5 +1,3 @@
-export const initialTitle = document.title;
-
 const charOptions = {
     b: ['b', 'Ƅ', 'ᑲ', 'ᖯ', '𝐛', '𝑏', '𝒃', '𝔟', '𝕓', '𝖇', '𝖻', '𝗯', '𝘣', '𝚋'],
     o: ['o', '⍥', '∅', 'ο', 'σ', '𝟶', '𑣈', 'ჿ'],
@@ -14,20 +12,25 @@ const charOptions = {
 
 const getRandomStringChar = str => str[Math.floor(Math.random() * str.length)];
 
-const getTitleOption = () => {
-    return [...initialTitle]
+const getStringOption = str => {
+    return [...str]
         .map(char => getRandomStringChar(charOptions[char] ?? char))
         .join('');
 };
 
-export const animateTitleChange = async (iterationsNumber, resultingTitle) => {
+export const animateStringChange = async (
+    originalString,
+    iterationsNumber,
+    cb
+) => {
     --iterationsNumber;
     if (iterationsNumber === 0) {
-        document.title = resultingTitle ?? getTitleOption();
+        cb(originalString);
         return;
     }
-    document.title = getTitleOption();
-    setTimeout(() => animateTitleChange(iterationsNumber, resultingTitle), 200);
+    cb(getStringOption(originalString));
+    setTimeout(
+        () => animateStringChange(originalString, iterationsNumber, cb),
+        200
+    );
 };
-
-animateTitleChange(5, initialTitle);
