@@ -37,6 +37,7 @@ const getCell = (fieldEl, rowI, cellI) =>
     ) ?? undefined;
 
 function runGame({ fieldShape, fieldEl }, gameIndex) {
+    fieldEl.classList.remove('lost');
     const field = fieldShape.map(row => row.slice());
     let gameStarted = false;
 
@@ -55,7 +56,7 @@ function runGame({ fieldShape, fieldEl }, gameIndex) {
         });
         fieldEl.append(...cellEls.filter(Boolean));
     } else {
-        fieldEl.getElementsByClassName(CELL_CLS).forEach(c => {
+        Array.from(fieldEl.getElementsByClassName(CELL_CLS)).forEach(c => {
             c.className = 'cell';
             c.innerHTML = '';
         });
@@ -98,10 +99,11 @@ function runGame({ fieldShape, fieldEl }, gameIndex) {
         fieldEl.onclick = null;
         fieldEl.oncontextmenu = e => e.preventDefault();
         if (hasWon) {
-            fieldEl.classList.add('solved');
+            fieldEl.classList.add('won');
         } else {
+            fieldEl.classList.add('lost');
             setTimeout(() => {
-                runGame({ field: fieldShape, fieldEl }, gameIndex);
+                runGame({ fieldShape, fieldEl }, gameIndex);
             }, 1000);
         }
     };

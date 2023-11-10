@@ -1,5 +1,7 @@
 :root {
     --revealedBGColor: hsla(0, 0%, 0%, 0.64);
+    --wonBGColor: hsla(160, 35%, 11%, 0.64);
+    --lostBGColor: hsla(0, 63%, 10%, 0.64);
     --textColor: hsla(0, 0%, 100%, 1);
     --defaultBGColor: hsla(0, 0%, 50%, 0.7);
     --cellSize: 12px;
@@ -48,13 +50,20 @@ body {
     gap: var(--gapBetweenCells);
 }
 
-.letter-map.solved .cell {
-    background-color: var(--revealedBGColor);
+.letter-map.won .cell {
+    background-color: var(--wonBGColor);
+    transition: background-color 1s;
+    color: transparent;
+}
+
+.letter-map.lost .cell {
+    background-color: var(--lostBGColor);
+    transition: background-color 1s;
     color: transparent;
 }
 
 .cell {
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.5s ease, color 0.2s ease;
     user-select: none;
     width: var(--cellSize);
     height: var(--cellSize);
@@ -116,10 +125,11 @@ body {
     }
 
     .letter-map {
+        transform: translateY(1dvh);
         place-content: center;
         height: 100vh;
         height: 100dvh;
-        min-height: 684px; /* remove constant */
+        min-height: 684px;
         scroll-snap-align: start;
     }
 }
