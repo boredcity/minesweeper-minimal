@@ -125,11 +125,18 @@ body {
     }
 
     .letter-map {
+        --letterHeight: 684px;
         transform: translateY(1dvh);
         place-content: center;
         height: 100vh;
         height: 100dvh;
         min-height: 684px;
+    }
+}
+
+@media only screen and (min-height: 684px) {
+    .letter-map {
+        /* don't snap on screens not tall enough for a single letter */
         scroll-snap-align: start;
     }
 }
