@@ -61,6 +61,11 @@ function runGame({ fieldShape, fieldEl }, gameIndex) {
             c.innerHTML = '';
         });
     }
+
+    if (localStorage.wonStages?.includes(`|${gameIndex}|`)) {
+        return fieldEl.classList.add('won');
+    }
+
     const cellsArr = Array.from(fieldEl.getElementsByClassName(CELL_CLS));
 
     const visibility = field.map(row => row.map(() => false));
@@ -100,6 +105,10 @@ function runGame({ fieldShape, fieldEl }, gameIndex) {
         fieldEl.oncontextmenu = e => e.preventDefault();
         if (hasWon) {
             fieldEl.classList.add('won');
+            if (localStorage.wonStages === undefined) {
+                localStorage.wonStages = '';
+            }
+            localStorage.wonStages += `|${gameIndex}|`;
         } else {
             fieldEl.classList.add('lost');
             setTimeout(() => {
