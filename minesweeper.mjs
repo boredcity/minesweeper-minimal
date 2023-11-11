@@ -36,10 +36,14 @@ const getCell = (fieldEl, rowI, cellI) =>
         `.cell[data-row-i="${rowI}"][data-cell-i="${cellI}"]`
     ) ?? undefined;
 
+let shouldAutoSolve = true;
+
 function runGame({ fieldShape, fieldEl }, gameIndex) {
+    fieldEl.classList.remove('won');
     fieldEl.classList.remove('lost');
     const field = fieldShape.map(row => row.slice());
     let gameStarted = false;
+    let gameFinished = false;
 
     if (fieldEl.innerHTML === '') {
         fieldEl.style.gridTemplateColumns = `repeat(${field[0].length}, 1fr)`;
@@ -73,7 +77,7 @@ function runGame({ fieldShape, fieldEl }, gameIndex) {
     // each next letter is a bit more challenging
     const minesCount = Math.floor(cellsArr.length / (16 - gameIndex));
 
-    const updateVisibleCount = () => {
+    const checkWinCondition = () => {
         let visibleCount = 0;
         for (const row of visibility) {
             for (const isCellVisible of row) {
@@ -101,49 +105,68 @@ function runGame({ fieldShape, fieldEl }, gameIndex) {
     };
 
     const endGame = hasWon => {
+        gameFinished = true;
         fieldEl.onclick = null;
         fieldEl.oncontextmenu = e => e.preventDefault();
         if (hasWon) {
             fieldEl.classList.add('won');
-            if (localStorage.wonStages === undefined) {
-                localStorage.wonStages = '';
+            if (!shouldAutoSolve) {
+                if (localStorage.wonStages === undefined)
+                    localStorage.wonStages = '';
+                localStorage.wonStages += `|${gameIndex}|`;
+                return;
             }
-            localStorage.wonStages += `|${gameIndex}|`;
         } else {
             fieldEl.classList.add('lost');
-            setTimeout(() => {
-                runGame({ fieldShape, fieldEl }, gameIndex);
-            }, 1000);
         }
+        setTimeout(() => {
+            runGame({ fieldShape, fieldEl }, gameIndex);
+        }, 1000);
     };
 
-    fieldEl.onclick = ({ target }) => {
+    const revealCell = (target, delay = 0) => {
         if (!target.classList.contains(CELL_CLS)) return;
         if (target.classList.contains(MARKED_AS_MINE_CLS)) return; // ignore marked as mines
         const { rowI, cellI } = getCellPositionData(target);
+        if (visibility[rowI][cellI]) return;
         if (!gameStarted) {
             // place mines on first click of the game
             placeMines([rowI, cellI]);
             gameStarted = true;
         }
         visibility[rowI][cellI] = true;
-        target.classList.add(REVEALED_CLS);
         const value = field[rowI][cellI];
-        target.innerHTML = value || '';
-        if (value === '*') {
-            loseGame();
-            return;
+        setTimeout(() => {
+            if (gameFinished) return;
+            target.classList.add(REVEALED_CLS);
+            target.innerHTML = value || '';
+        }, delay);
+        setTimeout(() => {
+            if (value === 0) revealAdjacents({ rowI, cellI }, delay + 10);
+            checkWinCondition();
+        }, 0);
+        if (value === '*') loseGame();
+    };
+
+    fieldEl.onclick = evt => {
+        shouldAutoSolve = false;
+        revealCell(evt.target);
+    };
+
+    const revealAdjacents = async ({ rowI, cellI }, delay = 0) => {
+        for (const [rowAdj, cellAdj] of NEIGHBOR_ADJUSTMENTS) {
+            const cell = getCell(fieldEl, rowI + rowAdj, cellI + cellAdj);
+            if (cell) revealCell(cell, delay);
         }
-        if (value === 0) revealAdjacents({ rowI, cellI });
-        updateVisibleCount();
     };
 
     fieldEl.oncontextmenu = evt => {
+        shouldAutoSolve = false;
         evt.preventDefault();
         const { target } = evt;
         if (!target.classList.contains(CELL_CLS)) return;
-        const isRevealed = target.classList.contains(REVEALED_CLS);
-        if (isRevealed) {
+        const { rowI, cellI } = getCellPositionData(target);
+        if (visibility[rowI][cellI]) {
             // reveal adjacent cells if enough neighbours are marked as mines
             const { rowI, cellI } = getCellPositionData(target);
             let value = field[rowI][cellI];
@@ -154,34 +177,9 @@ function runGame({ fieldShape, fieldEl }, gameIndex) {
             }
             if (value > 0) return; // not enough cells marked as mines to reveal
             revealAdjacents({ rowI, cellI });
-            updateVisibleCount();
+            checkWinCondition();
         } else {
             target.classList.toggle(MARKED_AS_MINE_CLS);
-        }
-    };
-
-    const revealAdjacents = ({ rowI, cellI }) => {
-        for (const [rowAdj, cellAdj] of NEIGHBOR_ADJUSTMENTS) {
-            const rI = rowI + rowAdj;
-            const cI = cellI + cellAdj;
-            const isVisible = visibility[rI]?.[cI];
-            if (isVisible) continue; // no need to reveal
-
-            const value = field[rI]?.[cI];
-            const cell = getCell(fieldEl, rI, cI);
-            if (cell === undefined || value === undefined) continue; // skip out of bounds
-
-            if (cell.classList.contains(MARKED_AS_MINE_CLS)) continue; // skip cells marked by player as mines
-            if (value === '*') {
-                // Game over: revealed an unmarked mine
-                loseGame();
-                continue;
-            }
-            visibility[rI][cI] = true;
-
-            cell.classList.add(REVEALED_CLS);
-            cell.innerHTML = value || '';
-            if (value === 0) revealAdjacents({ rowI: rI, cellI: cI });
         }
     };
 
@@ -213,4 +211,70 @@ function runGame({ fieldShape, fieldEl }, gameIndex) {
             }
         }
     };
+
+    async function autoSolve() {
+        let lastRevealedCell = null;
+        while (shouldAutoSolve && !gameFinished) {
+            if (lastRevealedCell) {
+                const { rowI, cellI } = getCellPositionData(lastRevealedCell);
+                const minesAround = field[rowI][cellI];
+                const potentialMines = [];
+                for (const [rowAdj, cellAdj] of NEIGHBOR_ADJUSTMENTS) {
+                    const neighbourRowI = rowI + rowAdj;
+                    const neighbourCellI = cellI + cellAdj;
+                    const cell = getCell(
+                        fieldEl,
+                        neighbourRowI,
+                        neighbourCellI
+                    );
+                    if (cell) {
+                        const alreadyRevealed =
+                            visibility[neighbourRowI][neighbourCellI];
+                        if (!alreadyRevealed) potentialMines.push(cell);
+                    }
+                }
+                if (potentialMines.length === minesAround) {
+                    for (const cell of potentialMines) {
+                        cell.classList.add(MARKED_AS_MINE_CLS);
+                        await new Promise(res =>
+                            setTimeout(
+                                res,
+                                Math.max(350, Math.floor(Math.random() * 1000))
+                            )
+                        );
+                    }
+                }
+                lastRevealedCell = null;
+                continue;
+            } else {
+                const safeChoices = cellsArr.filter(c => {
+                    const { rowI, cellI } = getCellPositionData(c);
+                    if (visibility[rowI][cellI]) return false;
+                    const value = field[rowI][cellI];
+                    if (value === '*' || null) {
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (safeChoices.length === 0) {
+                    return;
+                }
+                const cellToReveal =
+                    safeChoices[Math.floor(Math.random() * safeChoices.length)];
+                revealCell(cellToReveal);
+                lastRevealedCell = cellToReveal;
+            }
+
+            await new Promise(res =>
+                setTimeout(res, Math.max(750, Math.floor(Math.random() * 1500)))
+            );
+        }
+        if (!gameFinished) {
+            endGame(false);
+        }
+    }
+
+    if (shouldAutoSolve)
+        setTimeout(autoSolve, Math.max(1500, Math.floor(Math.random() * 3500)));
 }
